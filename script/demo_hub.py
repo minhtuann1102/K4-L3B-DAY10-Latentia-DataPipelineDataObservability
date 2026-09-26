@@ -29,11 +29,20 @@ class DemoHubHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
-        if parsed.path == "/" or parsed.path == "/demo":
+        if parsed.path in ("/", "/demo", "/index.html"):
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
             html_path = ROOT_DIR / "docs" / "demo_hub.html"
+            with open(html_path, "rb") as f:
+                self.wfile.write(f.read())
+            return
+
+        if parsed.path in ("/slides", "/slides.html", "/docs/slides.html"):
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            html_path = ROOT_DIR / "docs" / "slides.html"
             with open(html_path, "rb") as f:
                 self.wfile.write(f.read())
             return
