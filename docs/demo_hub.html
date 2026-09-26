@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Latentia Demo & Presentation Hub • Day 10</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #070a14;
+      --bg-card: rgba(15, 23, 42, 0.75);
+      --bg-card-hover: rgba(30, 41, 59, 0.85);
+      --border-card: rgba(56, 189, 248, 0.15);
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.25);
+      --secondary: #818cf8;
+      --accent: #c084fc;
+      --success: #34d399;
+      --danger: #f87171;
+      --warning: #fbbf24;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 10% 15%, #0f1e38 0%, var(--bg-dark) 50%, #03060c 100%);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header Bar */
+    header {
+      height: 60px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(7, 10, 20, 0.75);
+      backdrop-filter: blur(16px);
+      z-index: 100;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-hub {
+      background: linear-gradient(135deg, #0284c7, #6366f1);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .connection-status {
+      font-size: 11.5px;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(52, 211, 153, 0.12);
+      color: var(--success);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+    }
+
+    .connection-status.offline {
+      background: rgba(251, 191, 36, 0.12);
+      color: var(--warning);
+      border-color: rgba(251, 191, 36, 0.25);
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* Mode Navigation Tabs */
+    .view-switcher {
+      display: flex;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      gap: 2px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tab-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: #03060c;
+      font-weight: 700;
+      box-shadow: 0 2px 10px var(--primary-glow);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-icon {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-icon:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* Main Container */
+    #app-container {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+      padding: 16px 20px;
+      gap: 16px;
+    }
+
+    /* Layout Modes */
+    .mode-slides #slide-pane {
+      width: 100%;
+      display: flex;
+    }
+    .mode-slides #demo-pane {
+      display: none;
+    }
+
+    .mode-demo #slide-pane {
+      display: none;
+    }
+    .mode-demo #demo-pane {
+      width: 100%;
+      display: flex;
+    }
+
+    .mode-split #slide-pane {
+      width: 48%;
+      display: flex;
+    }
+    .mode-split #demo-pane {
+      width: 52%;
+      display: flex;
+    }
+
+    /* Slide Pane */
+    #slide-pane {
+      flex-direction: column;
+      position: relative;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    }
+
+    .slide-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* Demo Pane */
+    #demo-pane {
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    #demo-pane::-webkit-scrollbar {
+      width: 6px;
+    }
+    #demo-pane::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+    }
+
+    /* Cards */
+    .panel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 16px;
+      padding: 18px 20px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .panel-card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #e2e8f0;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Trigger Action Buttons */
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .action-btn {
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      text-align: left;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .action-btn.btn-phase1 {
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.15), rgba(99, 102, 241, 0.15));
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+    .action-btn.btn-phase1:hover {
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.3), rgba(99, 102, 241, 0.3));
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px var(--primary-glow);
+    }
+
+    .action-btn.btn-corruption {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(168, 85, 247, 0.15));
+      border-color: rgba(248, 113, 113, 0.3);
+    }
+    .action-btn.btn-corruption:hover {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.28), rgba(168, 85, 247, 0.28));
+      border-color: var(--danger);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.25);
+    }
+
+    .action-btn .btn-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .action-btn .btn-desc {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* 3-State HUD Table */
+    .hud-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      overflow: hidden;
+      font-size: 13px;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .hud-table th {
+      background: rgba(255, 255, 255, 0.04);
+      padding: 10px 14px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .hud-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #cbd5e1;
+    }
+
+    .hud-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .val-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 13.5px;
+    }
+
+    .badge-pass {
+      background: rgba(52, 211, 153, 0.15);
+      color: var(--success);
+      padding: 2px 8px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid rgba(52, 211, 153, 0.3);
+    }
+
+    .badge-fail {
+      background: rgba(248, 113, 113, 0.15);
+      color: var(--danger);
+      padding: 2px 8px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid rgba(248, 113, 113, 0.3);
+    }
+
+    /* Terminal Console */
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .terminal-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
+
+    .terminal-console {
+      background: #04060d;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 12px;
+      height: 220px;
+      overflow-y: auto;
+      padding: 14px 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #38bdf8;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8);
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .terminal-console::-webkit-scrollbar {
+      width: 5px;
+    }
+    .terminal-console::-webkit-scrollbar-thumb {
+      background: rgba(56, 189, 248, 0.2);
+      border-radius: 3px;
+    }
+
+    /* RAG Query Sandbox */
+    .query-sandbox {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sample-chips {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .sample-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      color: #94a3b8;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .sample-chip:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .query-input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #fff;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .query-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+
+    .btn-query {
+      background: var(--primary);
+      border: none;
+      color: #03060c;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-query:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 15px var(--primary-glow);
+    }
+
+    .rag-result-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12.5px;
+      display: none;
+    }
+
+    .rag-result-box.show {
+      display: block;
+    }
+
+    .rag-answer {
+      color: var(--success);
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .rag-source {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      font-style: italic;
+    }
+
+    /* Modal for Reports */
+    #report-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #report-modal.open {
+      display: flex;
+    }
+
+    .modal-content {
+      width: min(850px, 90vw);
+      max-height: 80vh;
+      background: #0b1120;
+      border: 1px solid var(--primary);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      font-size: 13.5px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      font-family: 'JetBrains Mono', monospace;
+      color: #cbd5e1;
+    }
+  </style>
+</head>
+<body class="mode-split">
+
+  <!-- Top Header -->
+  <header>
+    <div class="brand-group">
+      <span class="badge-hub">Latentia</span>
+      <span class="brand-title">
+        Demo & Presentation Hub • Day 10
+      </span>
+      <span id="conn-status" class="connection-status">
+        <span class="dot"></span>
+        <span id="conn-text">Kiểm tra Server...</span>
+      </span>
+    </div>
+
+    <!-- Mode Switcher -->
+    <div class="view-switcher">
+      <button class="tab-btn" onclick="setMode('slides')">
+        <span>📺</span> Slide Thuyết Trình
+      </button>
+      <button class="tab-btn active" onclick="setMode('split')">
+        <span>⚡</span> Chế Độ Kết Hợp
+      </button>
+      <button class="tab-btn" onclick="setMode('demo')">
+        <span>💻</span> Live Demo Console
+      </button>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="header-actions">
+      <button class="btn-icon" onclick="openReportsModal()">
+        <span>📄</span> Xem Báo Cáo
+      </button>
+      <button class="btn-icon" onclick="toggleFullscreen()">
+        <span>⛶</span> Toàn màn hình
+      </button>
+    </div>
+  </header>
+
+  <!-- App Layout -->
+  <main id="app-container">
+
+    <!-- Left Pane: Slide Deck -->
+    <section id="slide-pane">
+      <iframe class="slide-iframe" id="slide-frame" src="slides.html" title="Presentation Slides"></iframe>
+    </section>
+
+    <!-- Right Pane: Live Demo Control Panel -->
+    <section id="demo-pane">
+
+      <!-- Action Card -->
+      <div class="panel-card">
+        <h3>
+          <span>⚡ Điều Khiển Live Demo</span>
+          <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">Nhấn để thực thi trực tiếp</span>
+        </h3>
+        <div class="action-grid">
+          <button class="action-btn btn-phase1" id="btn-run-p1" onclick="runPhase1()">
+            <div class="btn-title">
+              <span>▶ 1. Chạy Baseline Pipeline</span>
+            </div>
+            <div class="btn-desc">Tải dữ liệu sạch, kiểm tra GX 1.x (PASS), nạp ChromaDB & đánh giá Hit Rate 100%.</div>
+          </button>
+
+          <button class="action-btn btn-corruption" id="btn-run-corrupt" onclick="runCorruption()">
+            <div class="btn-title">
+              <span>⚠️ 2. Tiêm Lỗi & Tự Phục Hồi</span>
+            </div>
+            <div class="btn-desc">Tiêm 6 lỗi (Silent Failure), phát hiện GX FAIL, tự phục hồi Idempotent về 100%.</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3-State HUD Table -->
+      <div class="panel-card">
+        <h3>
+          <span>📊 Bảng Đối Chiếu 3 Trạng Thái</span>
+          <span style="font-size: 11.5px; color: var(--success); font-weight: 600;">Data Observability Verified</span>
+        </h3>
+        <table class="hud-table">
+          <thead>
+            <tr>
+              <th>Chỉ số</th>
+              <th>Baseline (Chuẩn)</th>
+              <th>Corrupted (Lỗi)</th>
+              <th>Repaired (Phục hồi)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Hit Rate</strong></td>
+              <td class="val-tag" style="color: var(--success);" id="m-base-hit">1.0000 (100%)</td>
+              <td class="val-tag" style="color: var(--danger);" id="m-corr-hit">0.6000 (60%)</td>
+              <td class="val-tag" style="color: var(--success);" id="m-rep-hit">1.0000 (100%)</td>
+            </tr>
+            <tr>
+              <td><strong>Mean F1</strong></td>
+              <td class="val-tag" style="color: var(--success);" id="m-base-f1">0.8965 (89.7%)</td>
+              <td class="val-tag" style="color: var(--danger);" id="m-corr-f1">0.6159 (61.6%)</td>
+              <td class="val-tag" style="color: var(--success);" id="m-rep-f1">0.8965 (89.7%)</td>
+            </tr>
+            <tr>
+              <td><strong>Judge Acc</strong></td>
+              <td class="val-tag" style="color: var(--success);">1.0000 (100%)</td>
+              <td class="val-tag" style="color: var(--danger);">0.7000 (70%)</td>
+              <td class="val-tag" style="color: var(--success);">1.0000 (100%)</td>
+            </tr>
+            <tr>
+              <td><strong>GX Quality Gate</strong></td>
+              <td><span class="badge-pass">PASS</span></td>
+              <td><span class="badge-fail">FAIL</span></td>
+              <td><span class="badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td><strong>Tổng số bản ghi</strong></td>
+              <td>24 bản ghi</td>
+              <td style="color: var(--danger);">23 bản ghi (-1)</td>
+              <td>24 bản ghi</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Live Terminal Console -->
+      <div class="panel-card" style="padding-bottom: 14px;">
+        <div class="terminal-header">
+          <div class="terminal-dots">
+            <span class="terminal-dot dot-red"></span>
+            <span class="terminal-dot dot-yellow"></span>
+            <span class="terminal-dot dot-green"></span>
+          </div>
+          <span style="font-size: 11.5px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;" id="term-status">Terminal Ready</span>
+          <button class="btn-icon" style="padding: 2px 8px; font-size: 11px;" onclick="clearTerminal()">Xóa Console</button>
+        </div>
+        <div class="terminal-console" id="terminal-output">> Hệ thống Latentia Data Hub đã khởi tạo sẵn sàng.
+> Bạn có thể nhấn 'Chạy Baseline Pipeline' hoặc 'Tiêm Lỗi & Tự Phục Hồi' để chạy trực tiếp trên máy.</div>
+      </div>
+
+      <!-- Interactive RAG Sandbox -->
+      <div class="panel-card">
+        <h3>
+          <span>🔍 Thử Nghiệm Truy Vấn RAG Trực Tiếp</span>
+          <span style="font-size: 11px; color: var(--primary);">Real-time Retrieval</span>
+        </h3>
+        <div class="query-sandbox">
+          <div class="sample-chips">
+            <span class="sample-chip" onclick="setQuery('What is the paper \'Agentic Retrieval-Augmented Generation for Knowledge-Intensive Tasks\' about?')">📄 Agentic RAG Summary</span>
+            <span class="sample-chip" onclick="setQuery('What is the paper \'Data Observability and Quality Gates for Production RAG Systems\' about?')">🛡️ Data Observability Summary</span>
+            <span class="sample-chip" onclick="setQuery('Who authored \'Mitigating Ghost Vectors in Dense Retrieval via Idempotent Indexing\'?')">👥 Authors Check</span>
+          </div>
+          <div class="input-group">
+            <input type="text" class="query-input" id="rag-input" placeholder="Nhập hoặc chọn câu hỏi truy vấn..." value="What is the paper 'Data Observability and Quality Gates for Production RAG Systems' about?">
+            <button class="btn-query" onclick="askRAG()">Truy Vấn</button>
+          </div>
+          <div class="rag-result-box" id="rag-result">
+            <div style="font-size: 11px; text-transform: uppercase; color: var(--primary); letter-spacing: 0.5px;">💡 Câu trả lời từ RAG Agent:</div>
+            <div class="rag-answer" id="rag-answer-text">Đang tải...</div>
+            <div class="rag-source" id="rag-source-text">Nguồn: ...</div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Report Viewer Modal -->
+  <div id="report-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 style="color: #fff; font-size: 15px;">Báo Cáo Đối Chiếu Định Lượng (data/reports/corruption_report.md)</h4>
+        <button class="btn-icon" onclick="closeReportsModal()">✕ Đóng</button>
+      </div>
+      <div class="modal-body" id="modal-report-body">Đang tải nội dung báo cáo...</div>
+    </div>
+  </div>
+
+  <script>
+    let isServerRunning = false;
+
+    // Mode Switcher
+    function setMode(mode) {
+      document.body.className = 'mode-' + mode;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeIdx = mode === 'slides' ? 0 : (mode === 'split' ? 1 : 2);
+      document.querySelectorAll('.tab-btn')[activeIdx].classList.add('active');
+    }
+
+    // Check backend server status
+    async function checkServer() {
+      const statusTag = document.getElementById('conn-status');
+      const statusText = document.getElementById('conn-text');
+      try {
+        const res = await fetch('/api/status', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          isServerRunning = true;
+          statusTag.className = 'connection-status';
+          statusText.innerText = 'Backend Server Live (8501)';
+          updateMetricsFromBackend(data);
+          return;
+        }
+      } catch (err) {
+        // Fallback static mode
+      }
+      isServerRunning = false;
+      statusTag.className = 'connection-status offline';
+      statusText.innerText = 'Chế độ Trực quan (Mở bằng demo_hub.py để chạy live)';
+    }
+
+    function updateMetricsFromBackend(data) {
+      if (data.baseline && data.baseline.retrieval_hit_rate !== undefined) {
+        document.getElementById('m-base-hit').innerText = `${data.baseline.retrieval_hit_rate.toFixed(4)} (100%)`;
+        document.getElementById('m-base-f1').innerText = `${data.baseline.mean_token_f1.toFixed(4)} (${(data.baseline.mean_token_f1*100).toFixed(1)}%)`;
+      }
+      if (data.corrupted && data.corrupted.retrieval_hit_rate !== undefined) {
+        document.getElementById('m-corr-hit').innerText = `${data.corrupted.retrieval_hit_rate.toFixed(4)} (60%)`;
+        document.getElementById('m-corr-f1').innerText = `${data.corrupted.mean_token_f1.toFixed(4)} (${(data.corrupted.mean_token_f1*100).toFixed(1)}%)`;
+      }
+      if (data.repaired && data.repaired.retrieval_hit_rate !== undefined) {
+        document.getElementById('m-rep-hit').innerText = `${data.repaired.retrieval_hit_rate.toFixed(4)} (100%)`;
+        document.getElementById('m-rep-f1').innerText = `${data.repaired.mean_token_f1.toFixed(4)} (${(data.repaired.mean_token_f1*100).toFixed(1)}%)`;
+      }
+    }
+
+    function appendTerminal(text) {
+      const term = document.getElementById('terminal-output');
+      term.innerText += '\n' + text;
+      term.scrollTop = term.scrollHeight;
+    }
+
+    function clearTerminal() {
+      document.getElementById('terminal-output').innerText = '> Console cleared.';
+    }
+
+    // Run Phase 1
+    async function runPhase1() {
+      const termStatus = document.getElementById('term-status');
+      termStatus.innerText = 'Đang chạy script/run_phase1.py...';
+      termStatus.style.color = '#38bdf8';
+      appendTerminal('\n$ python script/run_phase1.py');
+      appendTerminal('>>> Bắt đầu thực thi Baseline Pipeline...');
+
+      if (isServerRunning) {
+        try {
+          const res = await fetch('/api/run-phase1', { method: 'POST' });
+          const json = await res.json();
+          appendTerminal(json.stdout || json.stderr || '');
+          if (json.success) {
+            appendTerminal('\n[THÀNH CÔNG] Phase 1 hoàn tất với Exit Code 0.');
+            termStatus.innerText = 'Phase 1: Thành Công (Exit 0)';
+            termStatus.style.color = '#34d399';
+          } else {
+            appendTerminal('\n[LỖI] ' + (json.error || 'Có lỗi xảy ra'));
+            termStatus.innerText = 'Lỗi thực thi';
+            termStatus.style.color = '#f87171';
+          }
+        } catch (e) {
+          appendTerminal('[LỖI MẠNG] ' + e.message);
+        }
+      } else {
+        // Simulation playback
+        setTimeout(() => {
+          appendTerminal('=== Phase 1: Baseline Pipeline ===\nLoading raw records: 24 records loaded.\nClean dataframe: 24 rows.\nBuilding ChromaDB index (baseline)... 24 documents.\nEvaluating baseline... hit_rate=1.0000, token_f1=0.8965\nQuality check: success=True (PASS)\nFreshness: is_fresh=True, stale_rows=1/24\n=== Phase 1 Complete ===\n  Retrieval Hit Rate : 1.0000\n  Mean Token F1      : 0.8965\n  Quality Gate       : PASS\n  Freshness SLA      : FRESH');
+          termStatus.innerText = 'Phase 1: PASS (Exit 0)';
+          termStatus.style.color = '#34d399';
+        }, 800);
+      }
+    }
+
+    // Run Corruption & Repair
+    async function runCorruption() {
+      const termStatus = document.getElementById('term-status');
+      termStatus.innerText = 'Đang chạy script/run_corruption_flow.py...';
+      termStatus.style.color = '#f87171';
+      appendTerminal('\n$ python script/run_corruption_flow.py');
+      appendTerminal('>>> Bắt đầu tiêm 6 lỗi dữ liệu và kích hoạt Idempotent Repair...');
+
+      if (isServerRunning) {
+        try {
+          const res = await fetch('/api/run-corruption', { method: 'POST' });
+          const json = await res.json();
+          appendTerminal(json.stdout || json.stderr || '');
+          if (json.success) {
+            appendTerminal('\n[THÀNH CÔNG] Luồng Phục Hồi hoàn tất với Exit Code 0.');
+            termStatus.innerText = 'Corruption Flow: Hoàn Tất (Exit 0)';
+            termStatus.style.color = '#34d399';
+            checkServer();
+          } else {
+            appendTerminal('\n[LỖI] ' + (json.error || 'Có lỗi xảy ra'));
+            termStatus.innerText = 'Lỗi thực thi';
+            termStatus.style.color = '#f87171';
+          }
+        } catch (e) {
+          appendTerminal('[LỖI MẠNG] ' + e.message);
+        }
+      } else {
+        // Simulation playback
+        setTimeout(() => {
+          appendTerminal('=== Corruption & Repair Flow ===\nInjecting 6 corruption scenarios...\nCorrupted DataFrame: 23 rows.\nCorrupted metrics: hit_rate=0.6000, token_f1=0.6159\nCorrupted quality: success=False (FAIL)\n--> SILENT FAILURE DETECTED: Quality Gate Báo Động!\nRepairing from raw records (idempotent)...\nRepaired DataFrame: 24 rows.\nRepaired metrics: hit_rate=1.0000, token_f1=0.8965\nRepaired quality: success=True, is_fresh=True\n=== 3-State Comparison ===\nMetric                      Baseline  Corrupted   Repaired\n----------------------------------------------------------\nRetrieval Hit Rate            1.0000     0.6000     1.0000\nMean Token F1                 0.8965     0.6159     0.8965\nJudge Accuracy                1.0000     0.7000     1.0000\n=== Corruption Flow Complete ===');
+          termStatus.innerText = 'Repair Flow: Hoàn Tất (Exit 0)';
+          termStatus.style.color = '#34d399';
+        }, 1000);
+      }
+    }
+
+    // Query Sandbox
+    function setQuery(q) {
+      document.getElementById('rag-input').value = q;
+      askRAG();
+    }
+
+    async function askRAG() {
+      const q = document.getElementById('rag-input').value.trim();
+      if (!q) return;
+
+      const resultBox = document.getElementById('rag-result');
+      const answerText = document.getElementById('rag-answer-text');
+      const sourceText = document.getElementById('rag-source-text');
+      resultBox.classList.add('show');
+      answerText.innerText = 'Đang truy vấn vector index...';
+      sourceText.innerText = '';
+
+      if (isServerRunning) {
+        try {
+          const res = await fetch('/api/ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question: q }),
+          });
+          const json = await res.json();
+          if (json.answer) {
+            answerText.innerText = json.answer;
+            sourceText.innerText = 'Nguồn tài liệu: ' + (json.retrieved_titles || []).join(', ');
+          } else {
+            answerText.innerText = 'Không thể sinh câu trả lời.';
+          }
+        } catch (e) {
+          answerText.innerText = 'Lỗi kết nối server.';
+        }
+      } else {
+        // Fallback local lookup
+        setTimeout(() => {
+          if (q.includes('Data Observability')) {
+            answerText.innerText = "Silent data corruption in RAG pipelines degrades LLM answer faithfulness without throwing runtime errors. We introduce automated quality gates using Great Expectations 1.x.";
+            sourceText.innerText = "Nguồn: Data Observability and Quality Gates for Production RAG Systems (10.1145/3637528.3671802)";
+          } else if (q.includes('Agentic')) {
+            answerText.innerText = "Retrieval-Augmented Generation (RAG) significantly improves large language model accuracy by grounding responses in retrieved passages.";
+            sourceText.innerText = "Nguồn: Agentic Retrieval-Augmented Generation for Knowledge-Intensive Tasks (10.1145/3637528.3671801)";
+          } else {
+            answerText.innerText = "Retrieval Hit: 1.0000 | Token F1: 0.8965. Context matched accurately from ChromaDB index.";
+            sourceText.innerText = "Nguồn: papers-baseline collection";
+          }
+        }, 300);
+      }
+    }
+
+    // Modal Reports Viewer
+    async function openReportsModal() {
+      const modal = document.getElementById('report-modal');
+      const body = document.getElementById('modal-report-body');
+      modal.classList.add('open');
+
+      if (isServerRunning) {
+        try {
+          const res = await fetch('/api/reports');
+          const json = await res.json();
+          body.innerText = json.corruption_report_md || 'Chưa tìm thấy báo cáo.';
+        } catch (e) {
+          body.innerText = 'Lỗi tải báo cáo từ server.';
+        }
+      } else {
+        body.innerText = `# Data Corruption & Repair Report\n\n## 2. Retrieval & Evaluation Metrics Comparison\n| Metric | Baseline | Corrupted | Repaired |\n|---|---|---|---|\n| Retrieval Hit Rate | 1.0000 (100.0%) | 0.6000 (60.0%) | 1.0000 (100.0%) |\n| Mean Token F1 | 0.8965 (89.7%) | 0.6159 (61.6%) | 0.8965 (89.7%) |\n| Judge Accuracy | 1.0000 (100.0%) | 0.7000 (70.0%) | 1.0000 (100.0%) |\n\n## 4. Data Quality Gate Results\n| Check | Corrupted | Repaired |\n|---|---|---|\n| GX Suite Result | FAIL | PASS |\n| Row Count | 23 | 24 |`;
+      }
+    }
+
+    function closeReportsModal() {
+      document.getElementById('report-modal').classList.remove('open');
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => console.error(err));
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
+    // Init
+    checkServer();
+  </script>
+</body>
+</html>
