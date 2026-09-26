@@ -22,6 +22,18 @@ from retrieval.qa import answer_question
 PORT = 8501
 HOST = "127.0.0.1"
 
+_cached_index = None
+
+def _get_index(settings):
+    global _cached_index
+    if _cached_index is None:
+        _cached_index = LocalEmbeddingIndex(settings=settings, collection_name=settings.baseline_collection_name)
+    return _cached_index
+
+def _reset_index():
+    global _cached_index
+    _cached_index = None
+
 
 class DemoHubHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -184,6 +196,7 @@ class DemoHubHandler(SimpleHTTPRequestHandler):
                 with open(settings.paths.repaired_metrics, "r", encoding="utf-8") as f:
                     res_metrics = json.load(f)
 
+            _reset_index()
             self._send_json({
                 "success": exit_code == 0,
                 "exit_code": exit_code,
@@ -203,8 +216,7 @@ class DemoHubHandler(SimpleHTTPRequestHandler):
 
         settings = load_settings(ROOT_DIR)
         try:
-            # Load baseline or repaired collection
-            index = LocalEmbeddingIndex(settings=settings, collection_name=settings.baseline_collection_name)
+            index = _get_index(settings)
             result = answer_question(question, settings=settings, index=index)
             self._send_json({
                 "question": question,
