@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Demo CP6: Data Pipeline & Data Observability - Team Latentia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0f1d;
+      --bg-card: rgba(15, 23, 42, 0.85);
+      --border-card: rgba(56, 189, 248, 0.15);
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.35);
+      --secondary: #818cf8;
+      --accent-purple: #c084fc;
+      --success: #34d399;
+      --danger: #f87171;
+      --warning: #fbbf24;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 15% 20%, #0e1e38 0%, var(--bg-dark) 60%, #050811 100%);
+      color: var(--text-main);
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    /* Top Bar */
+    header {
+      height: 60px;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(10, 15, 29, 0.6);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, #0284c7, #6366f1);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #e2e8f0;
+      letter-spacing: -0.2px;
+    }
+
+    .controls-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn-action {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-main);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-action:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--primary);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    /* Slider Container */
+    #deck {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .slide {
+      position: absolute;
+      width: min(1200px, 94vw);
+      height: min(680px, 86vh);
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 20px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 35px -5px var(--primary-glow);
+      backdrop-filter: blur(24px);
+      padding: 44px 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      opacity: 0;
+      transform: scale(0.95) translateY(20px);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      pointer-events: auto;
+    }
+
+    /* Slide Typography */
+    .slide-header {
+      margin-bottom: 20px;
+    }
+
+    .slide-badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .slide-title {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.25;
+      letter-spacing: -0.5px;
+      background: linear-gradient(120deg, #ffffff 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .slide-subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      font-weight: 400;
+    }
+
+    .slide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    /* Glass Cards */
+    .card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 20px 22px;
+      transition: all 0.25s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateY(-2px);
+    }
+
+    .card h4 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card p, .card li {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    ul.feature-list {
+      list-style: none;
+    }
+
+    ul.feature-list li {
+      position: relative;
+      padding-left: 20px;
+      margin-bottom: 8px;
+    }
+
+    ul.feature-list li::before {
+      content: "▹";
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+      font-weight: bold;
+    }
+
+    /* Metric Tables */
+    .metrics-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      font-size: 14px;
+      background: rgba(0, 0, 0, 0.25);
+    }
+
+    .metrics-table th {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 14px 18px;
+      text-align: left;
+      font-weight: 600;
+      color: #e2e8f0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .metrics-table td {
+      padding: 13px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+    }
+
+    .metrics-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .badge-pass {
+      background: rgba(52, 211, 153, 0.15);
+      color: var(--success);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 12px;
+      border: 1px solid rgba(52, 211, 153, 0.3);
+    }
+
+    .badge-fail {
+      background: rgba(248, 113, 113, 0.15);
+      color: var(--danger);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 12px;
+      border: 1px solid rgba(248, 113, 113, 0.3);
+    }
+
+    .val-highlight {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    /* Code Snippets */
+    .terminal-box {
+      background: #060913;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 12px;
+      padding: 16px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #38bdf8;
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8);
+      position: relative;
+    }
+
+    .terminal-box .cmd {
+      color: #f1f5f9;
+      font-weight: 600;
+    }
+
+    .terminal-box .comment {
+      color: #64748b;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    /* Speaker Notes Drawer */
+    #notes-drawer {
+      position: fixed;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120%);
+      width: min(880px, 90vw);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--primary);
+      border-radius: 14px;
+      padding: 18px 24px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(16px);
+      z-index: 200;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #notes-drawer.open {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    #notes-drawer h5 {
+      color: var(--primary);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #notes-content {
+      font-size: 14px;
+      color: #e2e8f0;
+      line-height: 1.6;
+    }
+
+    /* Bottom Navigation Bar */
+    footer {
+      height: 60px;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(10, 15, 29, 0.6);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn-nav {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-nav:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #000;
+      transform: scale(1.05);
+    }
+
+    .progress-bar-container {
+      flex: 1;
+      max-width: 480px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      margin: 0 24px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 12.5%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      transition: width 0.3s ease;
+    }
+
+    .slide-counter {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Title Slide Specifics */
+    .title-slide {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .title-hero {
+      font-size: 46px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.2;
+      background: linear-gradient(135deg, #ffffff 20%, #38bdf8 60%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 16px;
+    }
+
+    .title-tagline {
+      font-size: 19px;
+      color: #cbd5e1;
+      max-width: 820px;
+      margin: 0 auto 36px auto;
+      line-height: 1.5;
+    }
+
+    .team-badge-container {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .team-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 10px 18px;
+      border-radius: 12px;
+      text-align: left;
+    }
+
+    .team-chip .name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .team-chip .role {
+      font-size: 11px;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <div class="brand">
+      <span class="brand-badge">Day 10</span>
+      <span class="brand-title">Team Latentia • Data Pipeline & Observability</span>
+    </div>
+    <div class="controls-top">
+      <button class="btn-action" id="btn-notes" onclick="toggleNotes()">
+        <span>🎙️</span> Ghi chú nói (N)
+      </button>
+      <button class="btn-action" onclick="toggleFullscreen()">
+        <span>⛶</span> Toàn màn hình (F)
+      </button>
+    </div>
+  </header>
+
+  <!-- Slide Deck -->
+  <main id="deck">
+
+    <!-- Slide 1: Title Slide -->
+    <div class="slide active title-slide" data-notes="Chào mừng Thầy Cô và các bạn. Chúng em là Team Latentia. Hôm nay nhóm xin trình diễn sản phẩm Lab Day 10: Xây dựng Data Pipeline hoàn chỉnh tích hợp Data Observability cho hệ thống RAG Agent, đo lường sự cố dữ liệu bẩn và cơ chế tự phục hồi Idempotent.">
+      <div>
+        <div class="slide-badge">K4-L3B-DAY10 • VinUni AI Engineering Lab</div>
+        <h1 class="title-hero">Data Pipeline & Data Observability</h1>
+        <p class="title-tagline">
+          Phát hiện sớm suy thoái ngầm (Silent Failure), giám sát chất lượng dữ liệu bằng Great Expectations 1.x & Cơ chế tự phục hồi Idempotent cho RAG
+        </p>
+      </div>
+
+      <div class="team-badge-container">
+        <div class="team-chip">
+          <div class="name">Nguyễn Minh Tuấn</div>
+          <div class="role">Techlead & Pipeline Integrator (2A202602420)</div>
+        </div>
+        <div class="team-chip">
+          <div class="name">Nguyễn Minh Thắng</div>
+          <div class="role">Data Foundation & Observability (2A202602706)</div>
+        </div>
+        <div class="team-chip">
+          <div class="name">Nguyễn Thị Vàng</div>
+          <div class="role">RAG, Vector Index & Benchmark (2A202602897)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 2: Vấn đề cốt lõi & Silent Failure -->
+    <div class="slide" data-notes="Vấn đề lớn nhất của RAG trong sản xuất là: Khi dữ liệu bị bẩn, hệ thống KHÔNG crash mà vẫn âm thầm sinh ra câu trả lời sai lệch (Silent Failure). Vector DB vẫn trả về k hàng xóm gần nhất, LLM vẫn tự tin bịa thông tin. Do đó, chốt kiểm dịch Data Observability là bắt buộc.">
+      <div class="slide-header">
+        <span class="slide-badge">1. Vấn Đề Cốt Lõi</span>
+        <h2 class="slide-title">Hiểm Họa "Silent Failure" trong Hệ Thống RAG</h2>
+        <p class="slide-subtitle">Tại sao hệ thống RAG vẫn chạy bình thường nhưng câu trả lời lại hoàn toàn vô nghĩa?</p>
+      </div>
+      <div class="slide-content">
+        <div class="grid-2">
+          <div class="card" style="border-left: 4px solid var(--danger);">
+            <h4>⚠️ RAG Truyền Thống Không Có Observability</h4>
+            <ul class="feature-list" style="margin-top: 12px;">
+              <li><strong>Zero Crash:</strong> Dữ liệu chứa chuỗi rác, null hay bản ghi bị cắt cụt không làm ứng dụng sập.</li>
+              <li><strong>Ảo giác tự tin (Hallucination):</strong> Vector DB vẫn lấy ra top-k vector nhiễu; LLM bịa câu trả lời mượt mà nhưng sai lệch.</li>
+              <li><strong>Khó gỡ lỗi:</strong> Lỗi phát sinh âm thầm ở tầng Data Ingestion nhưng chỉ bộc lộ khi người dùng cuối phàn nàn.</li>
+            </ul>
+          </div>
+          <div class="card" style="border-left: 4px solid var(--success);">
+            <h4>🛡️ Giải Pháp của Team Latentia</h4>
+            <ul class="feature-list" style="margin-top: 12px;">
+              <li><strong>Chốt kiểm dịch (Quality Gate):</strong> Tích hợp Great Expectations 1.x chặn đứng dữ liệu lỗi trước khi nạp vào Vector DB.</li>
+              <li><strong>Đo lường độ tươi (Freshness SLA):</strong> Cảnh báo khi dữ liệu bị lỗi thời (>180 ngày).</li>
+              <li><strong>Tự phục hồi (Idempotent Self-Healing):</strong> Khôi phục dữ liệu sạch từ Raw Preservation mà không sinh side-effect.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3: Kiến trúc Pipeline & Dòng dữ liệu -->
+    <div class="slide" data-notes="Kiến trúc gồm 4 tầng chính: Ingestion bảo toàn snapshot thô; Data Cleaning & Deduplication; Observability Quality Gate qua Great Expectations 1.x; và Retrieval ChromaDB Index phục vụ đánh giá Benchmark 10 câu hỏi chuẩn.">
+      <div class="slide-header">
+        <span class="slide-badge">2. Kiến Trúc Hệ Thống</span>
+        <h2 class="slide-title">Luồng Dữ Liệu End-to-End & Chốt Kiểm Dịch</h2>
+        <p class="slide-subtitle">Bảo toàn dữ liệu thô, làm sạch chuẩn hóa và giám sát chất lượng tự động</p>
+      </div>
+      <div class="slide-content">
+        <div class="grid-4">
+          <div class="card">
+            <h4>1. Raw Ingestion</h4>
+            <p><strong>Nguồn:</strong> Crossref Metadata API</p>
+            <p><strong>Bảo toàn:</strong> Snapshot 24 bài báo tại <code>crossref_records.json</code> có cơ chế fallback offline.</p>
+          </div>
+          <div class="card">
+            <h4>2. Data Cleaning</h4>
+            <p><strong>Khử trùng lặp:</strong> Dedup theo <code>paper_id</code></p>
+            <p><strong>Làm giàu dữ liệu:</strong> Tính <code>age_days</code> và ghép nối trường chuẩn <code>text_for_embedding</code>.</p>
+          </div>
+          <div class="card" style="border: 1px solid var(--primary);">
+            <h4>3. Quality Gate</h4>
+            <p><strong>Great Expectations 1.x:</strong> 4 Expectations kiểm tra số dòng, unique, not null, length.</p>
+            <p><strong>Freshness SLA:</strong> Giới hạn bài cũ &le; 25%.</p>
+          </div>
+          <div class="card">
+            <h4>4. Vector Index</h4>
+            <p><strong>Vector DB:</strong> ChromaDB</p>
+            <p><strong>Embedding:</strong> Gemini / MiniLM</p>
+            <p><strong>Benchmark:</strong> 10 câu hỏi phủ 4 nhóm nghiệp vụ (Summary, Author, Date, Category).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 4: Data Observability & Great Expectations 1.x -->
+    <div class="slide" data-notes="Ở CP1, nhóm triển khai Great Expectations 1.x theo chuẩn Fluent API mới nhất: sử dụng Ephemeral Context, Pandas Data Source, Dataframe Asset và Batch Definition. 4 kỳ vọng then chốt được kiểm tra nghiêm ngặt.">
+      <div class="slide-header">
+        <span class="slide-badge">3. Data Observability</span>
+        <h2 class="slide-title">Chốt Kiểm Dịch Great Expectations 1.x & Freshness SLA</h2>
+        <p class="slide-subtitle">Triển khai Ephemeral Context & Fluent API hiện đại của Great Expectations 1.x</p>
+      </div>
+      <div class="slide-content">
+        <div class="grid-2">
+          <div class="card">
+            <h4>🔍 4 Expectations Cốt Lõi (GX 1.x)</h4>
+            <ul class="feature-list" style="margin-top: 10px;">
+              <li><code>ExpectTableRowCountToBeBetween</code>: Kiểm tra số lượng bản ghi nằm trong ngưỡng [10, 50].</li>
+              <li><code>ExpectColumnValuesToNotBeNull</code>: Đảm bảo <code>paper_id</code>, <code>title</code> không bị khuyết thiếu.</li>
+              <li><code>ExpectColumnValuesToBeUnique</code>: Khóa chính <code>paper_id</code> phải duy nhất 100%.</li>
+              <li><code>ExpectColumnValueLengthsToBeBetween</code>: Tiêu đề <code>title</code> tối thiểu 8 ký tự, tránh tiêu đề cụt/rác.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>⏱️ Freshness SLA Monitor</h4>
+            <p style="margin-bottom: 12px;">Đo lường độ cũ của tài liệu học thuật theo thời gian thực:</p>
+            <div class="terminal-box" style="margin-bottom: 12px;">
+              <span class="comment"># Ngưỡng SLA tươi mới</span><br>
+              <span class="cmd">age_days = (run_date - published).days</span><br>
+              <span class="comment"># Cảnh báo nếu >25% bài báo cũ quá 180 ngày</span><br>
+              <span class="cmd">is_fresh = (stale_ratio &le; 0.25)</span>
+            </div>
+            <p><span class="badge-pass">BASELINE RESULT: FRESH</span> (Chỉ 1/24 bản ghi cũ quá hạn, đạt chuẩn).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 5: Kịch bản thử nghiệm Corruption -->
+    <div class="slide" data-notes="Để kiểm chứng năng lực của chốt kiểm dịch, nhóm đã chủ động tiêm 6 kịch bản lỗi thực tế vào dữ liệu sạch. Các lỗi này mô phỏng lỗi API crawler, lỗi chuyển đổi encoding, lỗi dữ liệu cũ và lỗi trùng lặp.">
+      <div class="slide-header">
+        <span class="slide-badge">4. Synthetic Corruption Suite</span>
+        <h2 class="slide-title">Tiêm 6 Kịch Bản Lỗi Dữ Liệu Để Thử Thách RAG</h2>
+        <p class="slide-subtitle">Mô phỏng chân thực các lỗi thường gặp trong Data Engineering thực tế</p>
+      </div>
+      <div class="slide-content">
+        <div class="grid-3">
+          <div class="card">
+            <h4>1. Drop Latest Records</h4>
+            <p>Mất mát 20% bản ghi mới nhất do lỗi phân trang API hoặc network timeout.</p>
+          </div>
+          <div class="card">
+            <h4>2. Blank Summary</h4>
+            <p>Xóa rỗng trường tóm tắt làm mất ngữ cảnh ngữ nghĩa chính khi embed vector.</p>
+          </div>
+          <div class="card">
+            <h4>3. Inject Noise</h4>
+            <p>Chèn chuỗi ký tự rác ngẫu nhiên làm biến dạng không gian embedding.</p>
+          </div>
+          <div class="card">
+            <h4>4. Truncate Title</h4>
+            <p>Cắt ngắn tiêu đề xuống dưới 8 ký tự, kích hoạt vi phạm Data Quality Gate.</p>
+          </div>
+          <div class="card">
+            <h4>5. Stale Date</h4>
+            <p>Lùi ngày xuất bản về quá khứ sâu, thử thách bộ đo Freshness SLA.</p>
+          </div>
+          <div class="card">
+            <h4>6. Duplicate Rows</h4>
+            <p>Nhân bản dữ liệu làm biến dạng phân phối tìm kiếm và vi phạm Unique check.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 6: Kết quả đối chiếu 3 trạng thái -->
+    <div class="slide" data-notes="Đây là slide quan trọng nhất chứng minh giá trị của bài lab. Nhìn vào bảng, khi tiêm lỗi, Hit Rate giảm từ 100% xuống 60%, F1 giảm xuống 61.6%, và GX báo FAIL. Sau khi kích hoạt Idempotent Repair, toàn bộ chỉ số phục hồi 100% về mức ban đầu.">
+      <div class="slide-header">
+        <span class="slide-badge">5. Định Lượng Thực Nghiệm</span>
+        <h2 class="slide-title">Bảng Đối Chiếu 3 Trạng Thái: Minh Chứng Hiệu Quả</h2>
+        <p class="slide-subtitle">Trích xuất trực tiếp từ báo cáo tự động <code>data/reports/corruption_report.md</code></p>
+      </div>
+      <div class="slide-content">
+        <table class="metrics-table">
+          <thead>
+            <tr>
+              <th>Chỉ số quan sát</th>
+              <th>1. Baseline (Chuẩn)</th>
+              <th>2. Corrupted (Bị lỗi)</th>
+              <th>3. Repaired (Phục hồi)</th>
+              <th>Đánh giá & Quan sát</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Retrieval Hit Rate</strong></td>
+              <td class="val-highlight" style="color: var(--success);">1.0000 (100%)</td>
+              <td class="val-highlight" style="color: var(--danger);">0.6000 (60.0%)</td>
+              <td class="val-highlight" style="color: var(--success);">1.0000 (100%)</td>
+              <td><span style="color: var(--danger);">📉 Tụt 40%</span> &rarr; <span style="color: var(--success);">✅ Phục hồi tuyệt đối</span></td>
+            </tr>
+            <tr>
+              <td><strong>Mean Token F1</strong></td>
+              <td class="val-highlight" style="color: var(--success);">0.8965 (89.7%)</td>
+              <td class="val-highlight" style="color: var(--danger);">0.6159 (61.6%)</td>
+              <td class="val-highlight" style="color: var(--success);">0.8965 (89.7%)</td>
+              <td>Độ tương đồng câu trả lời khôi phục chuẩn xác</td>
+            </tr>
+            <tr>
+              <td><strong>Judge Accuracy</strong></td>
+              <td class="val-highlight" style="color: var(--success);">1.0000 (100%)</td>
+              <td class="val-highlight" style="color: var(--danger);">0.7000 (70.0%)</td>
+              <td class="val-highlight" style="color: var(--success);">1.0000 (100%)</td>
+              <td>LLM-as-a-Judge đánh giá câu trả lời đạt điểm tối đa</td>
+            </tr>
+            <tr>
+              <td><strong>GX Quality Gate</strong></td>
+              <td><span class="badge-pass">PASS</span></td>
+              <td><span class="badge-fail">FAIL</span></td>
+              <td><span class="badge-pass">PASS</span></td>
+              <td>Phát hiện vi phạm chính xác khi tiêm lỗi</td>
+            </tr>
+            <tr>
+              <td><strong>Tổng số bản ghi</strong></td>
+              <td>24 bản ghi</td>
+              <td>23 bản ghi</td>
+              <td>24 bản ghi</td>
+              <td>Khôi phục nguyên vẹn cấu trúc dữ liệu</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Slide 7: Cơ chế Idempotent Repair -->
+    <div class="slide" data-notes="Cơ chế phục hồi tuân thủ nguyên tắc Bất Biến (Idempotency) trong Data Engineering. Nhóm không cố vá lỗi thủ công trên dữ liệu bẩn, mà quay về Raw Snapshot gốc đáng tin cậy, tái chạy cleaning và tái sinh vector store. Chạy 1 lần hay 100 lần kết quả vẫn đồng nhất.">
+      <div class="slide-header">
+        <span class="slide-badge">6. Cơ Chế Phục Hồi</span>
+        <h2 class="slide-title">Idempotent Self-Healing: Phục Hồi Bất Biến</h2>
+        <p class="slide-subtitle">Không bao giờ sửa lỗi trực tiếp trên dữ liệu bẩn; phục hồi từ nguồn Raw bất biến</p>
+      </div>
+      <div class="slide-content">
+        <div class="grid-2">
+          <div class="card">
+            <h4>📐 3 Nguyên Tắc Thiết Kế Idempotent</h4>
+            <ul class="feature-list" style="margin-top: 10px;">
+              <li><strong>Bảo toàn nguồn thô (Raw Immutability):</strong> File <code>crossref_records.json</code> là chân lý nguồn (Source of Truth), không bao giờ bị ghi đè hay chỉnh sửa khi pipeline chạy.</li>
+              <li><strong>Làm sạch có tính xác định (Deterministic Cleaning):</strong> Cùng một đầu vào raw luôn sinh ra chính xác 24 dòng dữ liệu sạch và cùng một hash vector.</li>
+              <li><strong>Tái tạo chỉ mục an toàn (Clean Re-indexing):</strong> Collection ChromaDB được reset và nạp mới, loại bỏ hoàn toàn rác tồn đọng.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>🛡️ Độ Tin Cậy Trong Môi Trường Production</h4>
+            <p style="margin-bottom: 12px;">Khi Quality Gate báo cờ <code>FAIL</code> trong CI/CD:</p>
+            <div class="terminal-box" style="margin-bottom: 12px;">
+              <span class="comment"># Tự động kích hoạt luồng Idempotent Repair</span><br>
+              <span class="cmd">raw_data = load_raw_records()</span><br>
+              <span class="cmd">clean_df = build_clean_dataframe(raw_data)</span><br>
+              <span class="cmd">index.rebuild(clean_df)</span>
+            </div>
+            <p>Toàn bộ quy trình diễn ra tự động chỉ trong <strong>vài giây</strong>, loại bỏ sự can thiệp thủ công.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 8: Kịch bản Live Demo & Đối đáp Q&A -->
+    <div class="slide" data-notes="Cuối cùng là phần thực chiến Live Demo: Nhóm chạy 2 kịch bản trên terminal trước lớp: python script/run_phase1.py và python script/run_corruption_flow.py. Sẵn sàng trả lời các câu hỏi về Great Expectations 1.x, Freshness SLA và Vector DB.">
+      <div class="slide-header">
+        <span class="slide-badge">7. Sẵn Sàng Trình Diễn</span>
+        <h2 class="slide-title">Kịch Bản Live Demo Trực Tiếp & Phản Biện Q&A</h2>
+        <p class="slide-subtitle">2 câu lệnh thực chiến chứng minh toàn bộ quy trình trên bảng</p>
+      </div>
+      <div class="slide-content">
+        <div class="grid-2">
+          <div class="card" style="border: 1px solid var(--primary);">
+            <h4>💻 2 Lệnh Terminal Live Demo</h4>
+            <div class="terminal-box" style="margin-top: 10px; margin-bottom: 10px;">
+              <span class="comment"># 1. Chạy Pha Chuẩn (Exit 0, Hit Rate 100%)</span><br>
+              <span class="cmd">python script/run_phase1.py</span><br><br>
+              <span class="comment"># 2. Tiêm Lỗi & Tự Phục Hồi (In bảng 3 trạng thái)</span><br>
+              <span class="cmd">python script/run_corruption_flow.py</span>
+            </div>
+            <p style="font-size: 12.5px; color: var(--success);">Đã tích hợp cơ chế Retry chống gián đoạn mạng Wi-Fi giảng đường.</p>
+          </div>
+          <div class="card">
+            <h4>🎯 Chủ Đề Trọng Tâm Sẵn Sàng Q&A</h4>
+            <ul class="feature-list" style="margin-top: 8px;">
+              <li><strong>GX 1.x Fluent API:</strong> Vì sao dùng Ephemeral Context thay vì cấu hình file YAML cũ?</li>
+              <li><strong>Freshness SLA:</strong> Cách tính <code>age_days</code> và ý nghĩa của việc kiểm dịch thời gian bài báo?</li>
+              <li><strong>Vector Corruption:</strong> Tại sao chèn nhiễu vào tóm tắt làm Hit Rate giảm tới 40%?</li>
+              <li><strong>Tính Idempotent:</strong> Vì sao phục hồi từ raw snapshot giải quyết triệt để Silent Failure?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Speaker Notes Modal / Drawer -->
+  <div id="notes-drawer">
+    <h5>
+      <span>🎙️ Gợi ý thuyết trình (Speaker Notes)</span>
+      <span style="font-size: 11px; color: var(--text-muted);">Phím tắt: N</span>
+    </h5>
+    <div id="notes-content">Gợi ý đang tải...</div>
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <footer>
+    <div class="nav-buttons">
+      <button class="btn-nav" onclick="prevSlide()" title="Trang trước (Phím Mũi tên Trái)">❮</button>
+      <button class="btn-nav" onclick="nextSlide()" title="Trang sau (Phím Mũi tên Phải hoặc Phím Cách)">❯</button>
+    </div>
+
+    <div class="progress-bar-container">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <div class="slide-counter" id="counter">1 / 8</div>
+  </footer>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const progressBar = document.getElementById('progress-bar');
+    const counter = document.getElementById('counter');
+    const notesDrawer = document.getElementById('notes-drawer');
+    const notesContent = document.getElementById('notes-content');
+    let currentIndex = 0;
+
+    function updateSlide(index) {
+      if (index < 0 || index >= slides.length) return;
+      slides[currentIndex].classList.remove('active');
+      currentIndex = index;
+      slides[currentIndex].classList.add('active');
+
+      // Update progress
+      const progressPercent = ((currentIndex + 1) / slides.length) * 100;
+      progressBar.style.width = progressPercent + '%';
+      counter.innerText = `${currentIndex + 1} / ${slides.length}`;
+
+      // Update speaker notes
+      const notes = slides[currentIndex].getAttribute('data-notes') || 'Không có ghi chú cho trang này.';
+      notesContent.innerText = notes;
+    }
+
+    function nextSlide() {
+      if (currentIndex < slides.length - 1) {
+        updateSlide(currentIndex + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentIndex > 0) {
+        updateSlide(currentIndex - 1);
+      }
+    }
+
+    function toggleNotes() {
+      notesDrawer.classList.toggle('open');
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.error(err);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key === 'n' || e.key === 'N') {
+        toggleNotes();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      } else if (e.key >= '1' && e.key <= '8') {
+        updateSlide(parseInt(e.key) - 1);
+      }
+    });
+
+    // Initialize first notes
+    updateSlide(0);
+  </script>
+</body>
+</html>
