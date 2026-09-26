@@ -240,6 +240,9 @@ def fetch_source_records(settings: Settings) -> list[PaperRecord]:
     return records
 
 
+import json
+
+
 def load_raw_records(path: Path) -> list[PaperRecord]:
     """Doc JSON snapshot va map thanh `PaperRecord`."""
     if not path.exists():
@@ -253,3 +256,22 @@ def load_raw_records(path: Path) -> list[PaperRecord]:
         records.append(PaperRecord(**data))
 
     return records
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return [
+        PaperRecord(
+            paper_id=item.get("paper_id", ""),
+            title=item.get("title", ""),
+            summary=item.get("summary", ""),
+            authors=item.get("authors", []),
+            categories=item.get("categories", []),
+            primary_category=item.get("primary_category", ""),
+            published=item.get("published", ""),
+            updated=item.get("updated", ""),
+            abs_url=item.get("abs_url", ""),
+            pdf_url=item.get("pdf_url", ""),
+            comment=item.get("comment", ""),
+        )
+        for item in data
+    ]
+
