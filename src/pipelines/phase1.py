@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from core.config import load_settings
-from core.utils import now_utc, write_csv, write_json
+from core.utils import df_to_records, now_utc, write_csv, write_json
 from evaluation.metrics import evaluate_pipeline
 from evaluation.testset import build_test_set
 from ingestion.cleaning import build_clean_dataframe
@@ -33,7 +33,7 @@ def main() -> None:
     # Step 3: Save clean artifacts
     settings.paths.clean_csv.parent.mkdir(parents=True, exist_ok=True)
     write_csv(df, settings.paths.clean_csv)
-    write_json(settings.paths.clean_json, df.astype(str).to_dict(orient="records"))
+    write_json(settings.paths.clean_json, df_to_records(df))
     print(f"Saved clean data to {settings.paths.clean_csv}")
 
     # Step 4: Build ChromaDB index

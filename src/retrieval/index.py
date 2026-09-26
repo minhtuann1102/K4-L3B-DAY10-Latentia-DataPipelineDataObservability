@@ -34,7 +34,7 @@ class LocalEmbeddingIndex:
         self.documents = documents
         self.persist_path = persist_path
         self.embedding_backend = "chroma"
-        self.embedding_model = MiniLMEmbeddings(settings.embedding_model)
+        self.embedding_model = MiniLMEmbeddings(settings.embedding_model, api_key=settings.google_api_key)
         self.client = chromadb.PersistentClient(path=str(persist_path))
         self.collection = self.client.get_collection(name=collection_name)
         self.documents_by_paper_id = {document["paper_id"].lower(): document for document in documents}
@@ -52,14 +52,14 @@ class LocalEmbeddingIndex:
                     "title": row["title"],
                     "content": row["text_for_embedding"],
                     "metadata": {
-                        "paper_id": row["paper_id"],
-                        "title": row["title"],
-                        "published": row["published"],
-                        "authors_joined": row["authors_joined"],
-                        "categories_joined": row["categories_joined"],
-                        "summary": row["summary"],
-                        "abs_url": row["abs_url"],
-                        "pdf_url": row["pdf_url"],
+                        "paper_id": str(row["paper_id"]),
+                        "title": str(row["title"]),
+                        "published": str(row["published"])[:10] if row.get("published") else "",
+                        "authors_joined": str(row.get("authors_joined", "")),
+                        "categories_joined": str(row.get("categories_joined", "")),
+                        "summary": str(row.get("summary", "")),
+                        "abs_url": str(row.get("abs_url", "")),
+                        "pdf_url": str(row.get("pdf_url", "")),
                     },
                 }
             )
@@ -92,7 +92,7 @@ class LocalEmbeddingIndex:
         persist_path = settings.paths.chroma_dir
         persist_path.mkdir(parents=True, exist_ok=True)
 
-        embedding_model = MiniLMEmbeddings(settings.embedding_model)
+        embedding_model = MiniLMEmbeddings(settings.embedding_model, api_key=settings.google_api_key)
         client = chromadb.PersistentClient(path=str(persist_path))
         try:
             client.delete_collection(name=collection_name)

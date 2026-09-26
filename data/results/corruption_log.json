@@ -1,0 +1,32 @@
+[
+  {
+    "type": "drop_latest_records",
+    "affected_rows": 4,
+    "description": "Dropped 4 most-recent records (20% of dataset)"
+  },
+  {
+    "type": "blank_summary",
+    "affected_rows": 3,
+    "description": "Blanked summary field for rows: [3, 0, 8]"
+  },
+  {
+    "type": "inject_noise",
+    "affected_rows": 3,
+    "description": "Injected noise characters into summary for rows: [7, 19, 4]"
+  },
+  {
+    "type": "truncate_title",
+    "affected_rows": 3,
+    "description": "Truncated title to <8 chars for rows: [3, 17, 2]"
+  },
+  {
+    "type": "stale_date",
+    "affected_rows": 3,
+    "description": "Set published date 2 years in the past for rows: [18, 13, 1]"
+  },
+  {
+    "type": "duplicate_rows",
+    "affected_rows": 3,
+    "description": "Duplicated 3 rows with modified paper_id suffix '_dup'"
+  }
+]

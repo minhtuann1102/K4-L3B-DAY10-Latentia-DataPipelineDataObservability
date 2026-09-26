@@ -3,7 +3,7 @@ from __future__ import annotations
 import pandas as pd
 
 from core.config import load_settings
-from core.utils import now_utc, read_json, write_csv, write_json
+from core.utils import df_to_records, now_utc, read_json, write_csv, write_json
 from evaluation.metrics import evaluate_pipeline
 from ingestion.cleaning import build_clean_dataframe
 from ingestion.corruption import corrupt_clean_dataframe
@@ -34,9 +34,11 @@ def main() -> None:
 
     clean_records = read_json(settings.paths.clean_json)
     df_clean = pd.DataFrame(clean_records)
-    # Restore datetime column if it was serialized as string
+    # Restore proper dtypes after JSON round-trip
     if "published" in df_clean.columns:
         df_clean["published"] = pd.to_datetime(df_clean["published"], utc=True, errors="coerce")
+    if "age_days" in df_clean.columns:
+        df_clean["age_days"] = pd.to_numeric(df_clean["age_days"], errors="coerce").fillna(0).astype(int)
     baseline_metrics = read_json(settings.paths.baseline_metrics)
     print(f"Loaded clean data: {len(df_clean)} rows, baseline hit_rate={baseline_metrics['retrieval_hit_rate']:.4f}")
 
@@ -48,7 +50,7 @@ def main() -> None:
     # Step 3: Save corrupted artifacts
     settings.paths.corrupted_clean_csv.parent.mkdir(parents=True, exist_ok=True)
     write_csv(df_corrupted, settings.paths.corrupted_clean_csv)
-    write_json(settings.paths.corrupted_clean_json, df_corrupted.to_dict(orient="records"))
+    write_json(settings.paths.corrupted_clean_json, df_to_records(df_corrupted))
 
     # Step 4: Build corrupted ChromaDB index and evaluate
     print("Building corrupted index and evaluating...")
@@ -80,7 +82,7 @@ def main() -> None:
     # Step 7: Save repaired artifacts
     settings.paths.repaired_clean_csv.parent.mkdir(parents=True, exist_ok=True)
     write_csv(df_repaired, settings.paths.repaired_clean_csv)
-    write_json(settings.paths.repaired_clean_json, df_repaired.to_dict(orient="records"))
+    write_json(settings.paths.repaired_clean_json, df_to_records(df_repaired))
 
     # Step 8: Build repaired index and evaluate
     print("Building repaired index and evaluating...")

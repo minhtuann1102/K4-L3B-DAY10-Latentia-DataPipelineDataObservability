@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(.venv/Scripts/python.exe script/run_phase1.py)"
+      "Bash(.venv/Scripts/python.exe script/run_phase1.py)",
+      "Bash(PYTHONPATH=src .venv/Scripts/python.exe script/run_phase1.py)",
+      "Bash(PYTHONPATH=src .venv/Scripts/python.exe -c ' *)",
+      "Bash(PYTHONPATH=src .venv/Scripts/python.exe script/run_corruption_flow.py)"
     ]
   }
 }

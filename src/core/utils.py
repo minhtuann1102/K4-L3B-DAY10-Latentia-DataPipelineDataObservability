@@ -30,6 +30,15 @@ def write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def df_to_records(df) -> list:
+    """Convert DataFrame to JSON-serializable records (converts datetime columns to ISO strings)."""
+    import pandas as _pd
+    out = df.copy()
+    for col in out.select_dtypes(include=["datetimetz", "datetime64"]).columns:
+        out[col] = out[col].apply(lambda v: v.isoformat() if _pd.notna(v) else None)
+    return out.to_dict(orient="records")
+
+
 def now_utc() -> datetime:
     return datetime.now(UTC)
 

@@ -93,7 +93,7 @@ def _run_ragas(settings: Settings, answers: list[dict[str, Any]]) -> dict[str, A
             dataset,
             metrics=[answer_relevancy, context_precision, context_recall, faithfulness],
             llm=build_llm(settings=settings, temperature=0.0),
-            embeddings=MiniLMEmbeddings(settings.embedding_model),
+            embeddings=MiniLMEmbeddings(settings.embedding_model, api_key=settings.google_api_key),
         )
         return dict(result)
     except Exception as exc:  # pragma: no cover
